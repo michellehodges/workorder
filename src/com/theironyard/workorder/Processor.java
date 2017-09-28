@@ -1,58 +1,86 @@
 package com.theironyard.workorder;
 
-public class Processor {
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.util.TypeKey;
 
-    //This process will read the work orders and then process them.
-    //The work order process is to first put the work order in the INITIAL pile.
-    //It next moves to the ASSIGNED pile (think of this as when the work order is assigned to someone).
-    //Next it moves to the IN_PROGRESS pile (when the person it was assigned to actually starts working on it.).
-    //And lastly it moves to the DONE pile (when the work is done).
+import java.io.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+public class Processor {
+    Map<Status, Set<WorkOrder>> workOrderHashMap = new HashMap<>();
+
+    public Processor() {
+        workOrderHashMap.putIfAbsent(Status.INITIAL, new HashSet<>());
+        workOrderHashMap.putIfAbsent(Status.ASSIGNED, new HashSet<>());
+        workOrderHashMap.putIfAbsent(Status.IN_PROGRESS, new HashSet<>());
+        workOrderHashMap.putIfAbsent(Status.DONE, new HashSet<>());
+    }
 
     public void processWorkOrders() {
-        //    TODO: The processWorkOrders method should:
-        //
         //    1. Run forever in a loop. Have the loop sleep for a five seconds (or longer).
-        //          - Here's the code to sleep for 5 seconds (5000 miliseconds)
-        //                  try {
-        //                          Thread.sleep(5000l);
-        //                          } catch (InterruptedException e) {
-        //                          e.printStackTrace();
-        //                          }
-
-        //    2. Have a map with Status as the key and a Set of work orders for the value
-        //          - print out the map
-        //          - move work orders from one map entry to the next (i.e., From IN_PROGRESS
-        //              to DONE; from ASSIGNED TO IN_PROGRESS; from INITIAL to ASSIGNED).
-        //              A work order should only transitioned once per loop.
-        //          - print out the map
-
-        //     3 Check for new work orders (files). For each new work order
-        //          - reads the file into a WorkOrder object
-        //          - removes the file
-        //          - print out the work order
-        //          - puts the work order in the INITIAL map entry.
-
-        moveIt();
-        readIt();
+        while (true) {
+            readIt();
+            moveIt();
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+        }
     }
 
     private void moveIt() {
-        // TODO: move work orders in map from one state to another
+        //    2. Have a map with Status as the key and a Set of work orders for the value
+        System.out.println(workOrderHashMap);
+        //          - move work orders from one map entry to the next (i.e., From IN_PROGRESS
+        //              to DONE; from ASSIGNED TO IN_PROGRESS; from INITIAL to ASSIGNED).
+        //              A work order should only transitioned once per loop.
+
+        Set<WorkOrder> setAssigned = new HashSet<>();
+        Set<WorkOrder> setInProgress = new HashSet<>();
+        Set<WorkOrder> setDone = new HashSet<>();
+
+        for (Status status : workOrderHashMap.keySet()) {
+            switch (status) {
+                case INITIAL: setAssigned = workOrderHashMap.get(Status.INITIAL);
+                    break;
+                case ASSIGNED: setInProgress = workOrderHashMap.get(Status.ASSIGNED);
+                    break;
+                case IN_PROGRESS:setDone = workOrderHashMap.get(Status.IN_PROGRESS);
+                    break;
+            }
+        }
+
+        workOrderHashMap.put(Status.INITIAL, new HashSet<>());
+        workOrderHashMap.put(Status.ASSIGNED, setAssigned);
+        workOrderHashMap.put(Status.IN_PROGRESS, setInProgress);
+        workOrderHashMap.put(Status.DONE, setDone);
+        System.out.println(workOrderHashMap);
     }
 
     private void readIt() {
-        // TODO: read the json files into WorkOrders and put in map
+        File currentDirectory = new File(".");
+        File files[] = currentDirectory.listFiles();
+        for (File f : files) {
+            if (f.getName().endsWith(".json")) {
 
-        //      Here's the code to read files with a "json" extension
-        //          File currentDirectory = new File(".");
-        //              File files[] = currentDirectory.listFiles();
-        //              for (File f : files) {
-        //                      if (f.getName().endsWith(".json")) {
-        //                      // f is a reference to a json file
-        //
-        //                      // f.delete(); will delete the file
-        //                      }
-        //                      }
+                //1. Change the file into a WorkOrder Object
+                ObjectMapper mapper = new ObjectMapper();
+                try {
+                    WorkOrder obj = mapper.readValue(f, WorkOrder.class);
+                    //2. Add that new WorkOrder object to HashMap under the proper key
+                    workOrderHashMap.get(Status.INITIAL).add(obj);
+                    //3. Delete that json file
+                    f.delete();
+                    System.out.println(this.workOrderHashMap);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     public static void main(String args[]) {
@@ -61,6 +89,11 @@ public class Processor {
 
         Processor processor = new Processor();
         processor.processWorkOrders();
+    }
+
+    @Override
+    public String toString() {
+        return super.toString();
     }
 }
 

@@ -61,6 +61,7 @@ public class Creator {
             workOrder.setSenderName(senderName);
         }
 
+        System.out.println(workOrder);
         return workOrder;
     }
 
@@ -73,4 +74,6 @@ public class Creator {
         Creator creator = new Creator();
         creator.createWorkOrders();
     }
+
+
 }

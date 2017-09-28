@@ -13,6 +13,8 @@ public class WorkOrder {
         this.status = status;
     }
 
+    public WorkOrder(){}
+
     public int getId() {
         return id;
     }
