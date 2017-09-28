@@ -58,6 +58,17 @@ public class Processor {
         workOrderHashMap.put(Status.ASSIGNED, setAssigned);
         workOrderHashMap.put(Status.IN_PROGRESS, setInProgress);
         workOrderHashMap.put(Status.DONE, setDone);
+
+        for (WorkOrder wo : workOrderHashMap.get(Status.INITIAL)) {
+            wo.setStatus(Status.ASSIGNED);
+        }
+        for (WorkOrder wo : workOrderHashMap.get(Status.ASSIGNED)) {
+            wo.setStatus(Status.IN_PROGRESS);
+        }
+        for (WorkOrder wo : workOrderHashMap.get(Status.IN_PROGRESS)) {
+            wo.setStatus(Status.DONE);
+        }
+
         System.out.println(workOrderHashMap);
     }
 
